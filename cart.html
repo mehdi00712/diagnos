@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <!-- ... -->
+  <title>Diagnos Pharmacy - Panier</title>
+</head>
+<body>
+  <header><!-- ... --></header>
+
+  <main class="cart-page">
+    <div class="container">
+      <h1 class="page-title">Votre Panier</h1>
+      
+      <div class="cart-grid">
+        <div class="cart-items">
+          <!-- Cart Item -->
+          <div class="cart-item">
+            <img src="path/to/product.jpg" alt="Product">
+            <div class="item-details">
+              <h3>Nom du Produit</h3>
+              <p class="price">€19.99</p>
+              <div class="quantity-selector">
+                <button class="qty-btn minus">-</button>
+                <input type="number" value="1" min="1">
+                <button class="qty-btn plus">+</button>
+              </div>
+            </div>
+            <button class="remove-item"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+
+        <div class="cart-summary">
+          <h3>Résumé de la commande</h3>
+          <div class="summary-details">
+            <p>Sous-total: <span>€19.99</span></p>
+            <p>Livraison: <span>€5.00</span></p>
+            <p class="total">Total: <span>€24.99</span></p>
+          </div>
+          <button class="btn btn-primary checkout-btn">Passer la commande</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer><!-- ... --></footer>
+
+  <script src="scripts/cart.js"></script>
+</body>
+</html>
