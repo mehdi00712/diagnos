@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Diagnos Pharmacy</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- 🔒 PROTECTION -->
+<script>
+  if (sessionStorage.getItem("adminLoggedIn") !== "true") {
+    window.location.replace("admin-login.html");
+  }
+</script>
+
+<header>
+  <div class="container header-container">
+    <a href="index.html" class="logo">Diagnos<span>Pharmacy</span></a>
+  </div>
+</header>
+
+<main class="admin-page">
+  <div class="container">
+
+    <div class="admin-header">
+      <div>
+        <h1>Admin Dashboard</h1>
+        <p>Gestion des commandes clients</p>
+      </div>
+
+      <button class="btn btn-secondary" onclick="adminLogout()">Déconnexion</button>
+      <button class="btn btn-primary" onclick="exportOrdersCSV()">Exporter CSV</button>
+    </div>
+
+    <div class="admin-stats">
+      <div class="admin-stat-card">
+        <h3>Total commandes</h3>
+        <p id="total-orders">0</p>
+      </div>
+
+      <div class="admin-stat-card">
+        <h3>En attente</h3>
+        <p id="pending-orders">0</p>
+      </div>
+
+      <div class="admin-stat-card">
+        <h3>Terminées</h3>
+        <p id="completed-orders">0</p>
+      </div>
+    </div>
+
+    <div class="orders-box">
+      <h2>Commandes</h2>
+      <div id="orders-list"></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  const ordersList = document.getElementById("orders-list");
+
+  // ================= TOAST =================
+  function showToast(message, type = "success") {
+    const old = document.querySelector(".toast-message");
+    if (old) old.remove();
+
+    const toast = document.createElement("div");
+    toast.className = `toast-message ${type}`;
+    toast.textContent = message;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.remove(), 3000);
+  }
+  function exportOrdersCSV() {
+  const orders = getOrders();
+
+  if (!orders || orders.length === 0) {
+    showToast("Aucune commande à exporter.", "error");
+    return;
+  }
+
+  const rows = [
+    [
+      "Order ID",
+      "Date",
+      "Client",
+      "Email",
+      "Phone",
+      "Address",
+      "Products",
+      "Total (€)",
+      "Status"
+    ]
+  ];
+
+  orders.forEach(order => {
+    const products = (order.items || []).map(item => {
+      return `${item.name} x${item.quantity}`;
+    }).join(" | ");
+
+    rows.push([
+      order.id || "",
+      order.date || "",
+      order.user?.name || "",
+      order.user?.email || "",
+      order.phone || "",
+      order.address || "",
+      products,
+      Number(order.total || 0).toFixed(2),
+      order.status || ""
+    ]);
+  });
+
+  const csvContent = rows.map(row =>
+    row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(",")
+  ).join("\n");
+
+  // 🔥 FIX: Add BOM for Excel compatibility
+  const blob = new Blob(["\uFEFF" + csvContent], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+
+  link.setAttribute("href", url);
+  link.setAttribute("download", "diagnos-orders.csv");
+
+  document.body.appendChild(link); // 🔥 FIX (needed for some browsers)
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+
+  showToast("CSV exporté avec succès.", "success");
+}
+
+  function getOrders() {
+    return JSON.parse(localStorage.getItem("orders")) || [];
+  }
+
+  function saveOrders(orders) {
+    localStorage.setItem("orders", JSON.stringify(orders));
+  }
+
+  function displayOrders() {
+    const orders = getOrders();
+
+    document.getElementById("total-orders").textContent = orders.length;
+    document.getElementById("pending-orders").textContent =
+      orders.filter(o => o.status === "Pending").length;
+    document.getElementById("completed-orders").textContent =
+      orders.filter(o => o.status === "Completed").length;
+
+    ordersList.innerHTML = "";
+
+    if (orders.length === 0) {
+      ordersList.innerHTML = `<div class="empty">Aucune commande.</div>`;
+      return;
+    }
+
+    orders.slice().reverse().forEach(order => {
+      const index = orders.findIndex(o => o.id === order.id);
+
+      const div = document.createElement("div");
+      div.className = "order-card";
+
+      div.innerHTML = `
+        <div class="order-top">
+          <div>
+            <h3>Commande #${order.id}</h3>
+            <p><strong>Date:</strong> ${order.date}</p>
+            <p><strong>Client:</strong> ${order.user?.name || "-"}</p>
+            <p><strong>Email:</strong> ${order.user?.email || "-"}</p>
+            <p><strong>Téléphone:</strong> ${order.phone || "-"}</p>
+            <p><strong>Adresse:</strong> ${order.address || "-"}</p>
+          </div>
+
+          <span class="order-status ${order.status.toLowerCase()}">
+            ${order.status}
+          </span>
+        </div>
+
+        <div class="order-items">
+          ${order.items.map(item => `
+            <p>${item.name} x${item.quantity} - €${(item.price * item.quantity).toFixed(2)}</p>
+          `).join("")}
+        </div>
+
+        <div class="order-bottom">
+          <strong>Total: €${Number(order.total).toFixed(2)}</strong>
+
+          <select onchange="changeStatus(${index}, this.value)">
+            <option value="Pending" ${order.status==="Pending"?"selected":""}>Pending</option>
+            <option value="Processing" ${order.status==="Processing"?"selected":""}>Processing</option>
+            <option value="Completed" ${order.status==="Completed"?"selected":""}>Completed</option>
+            <option value="Cancelled" ${order.status==="Cancelled"?"selected":""}>Cancelled</option>
+          </select>
+
+          <button class="btn btn-danger" onclick="deleteOrder(${index})">
+            Supprimer
+          </button>
+        </div>
+      `;
+
+      ordersList.appendChild(div);
+    });
+  }
+
+  function changeStatus(i, status) {
+    const orders = getOrders();
+    orders[i].status = status;
+    saveOrders(orders);
+
+    showToast("Statut mis à jour ✔", "success");
+    displayOrders();
+  }
+
+  function deleteOrder(i) {
+    const orders = getOrders();
+
+    orders.splice(i, 1);
+    saveOrders(orders);
+
+    showToast("Commande supprimée", "error");
+    displayOrders();
+  }
+
+  function adminLogout() {
+    sessionStorage.removeItem("adminLoggedIn");
+    window.location.replace("admin-login.html");
+  }
+
+  displayOrders();
+</script>
+
+</body>
+</html>

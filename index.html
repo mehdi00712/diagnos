@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnos Pharmacy</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="container header-container">
+    <a href="index.html" class="logo">Diagnos<span>Pharmacy</span></a>
+
+    <nav>
+      <ul>
+        <li><a href="index.html" class="active">Accueil</a></li>
+        <li><a href="products.html">Produits</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="locations.html">Nos Agences</a></li>
+        <li>
+          <a href="cart.html">
+            <i class="fas fa-shopping-cart"></i> 
+            Panier <span class="cart-count">0</span>
+          </a>
+        </li>
+        <li><a href="contact.html">Contact</a></li>
+
+        <!-- USER DROPDOWN -->
+        <li class="user-menu" id="user-menu">
+          <a href="login.html" id="user-link">Connexion</a>
+
+          <div class="user-dropdown" id="user-dropdown">
+            <a href="my-orders.html">Mes commandes</a>
+            <button type="button" onclick="logoutUser()">Déconnexion</button>
+          </div>
+        </li>
+      </ul>
+    </nav>
+
+    <button class="mobile-menu-btn">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+</header>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <ul>
+    <li><a href="index.html" class="active">Accueil</a></li>
+    <li><a href="products.html">Produits</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="locations.html">Nos Agences</a></li>
+    <li><a href="cart.html">Panier <span class="cart-count">0</span></a></li>
+    <li><a href="contact.html">Contact</a></li>
+
+    <li><a href="login.html" id="mobile-user-link">Connexion</a></li>
+    <li><a href="my-orders.html" id="mobile-orders-link" style="display:none;">Mes commandes</a></li>
+    <li>
+      <button type="button" class="mobile-logout-btn" onclick="logoutUser()" style="display:none;">
+        Déconnexion
+      </button>
+    </li>
+  </ul>
+</div>
+
+<!-- HERO -->
+<section class="hero parallax-section">
+  <div class="container hero-container">
+
+    <div class="hero-content" data-aos="fade-right">
+      <h1>Votre Santé, Notre Engagement</h1>
+      <p>Diagnos Pharmacy vous offre des solutions médicales modernes et fiables.</p>
+
+      <div class="hero-buttons">
+        <a href="products.html" class="btn btn-primary">Voir nos produits</a>
+        <a href="contact.html" class="btn btn-secondary">Prendre rendez-vous</a>
+      </div>
+    </div>
+
+    <div class="hero-image parallax-float" data-speed="0.08" data-aos="fade-left">
+      <img src="https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1400&q=80" alt="Pharmacy">
+    </div>
+
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services">
+  <div class="container">
+    <h2 class="section-title" data-aos="fade-up">Nos Services</h2>
+
+    <div class="services-grid">
+
+      <div class="service-card" data-aos="fade-up">
+        <div class="service-icon"><i class="fas fa-prescription-bottle-alt"></i></div>
+        <h3>Ordonnances</h3>
+        <p>Gestion des ordonnances en ligne.</p>
+      </div>
+
+      <div class="service-card" data-aos="fade-up">
+        <div class="service-icon"><i class="fas fa-syringe"></i></div>
+        <h3>Vaccinations</h3>
+        <p>Vaccins COVID-19 et grippe.</p>
+      </div>
+
+      <div class="service-card" data-aos="fade-up">
+        <div class="service-icon"><i class="fas fa-heartbeat"></i></div>
+        <h3>Conseils Santé</h3>
+        <p>Consultations avec nos experts.</p>
+      </div>
+
+      <div class="service-card" data-aos="fade-up">
+        <div class="service-icon"><i class="fas fa-pills"></i></div>
+        <h3>Livraison</h3>
+        <p>Médicaments livrés chez vous.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="products">
+  <div class="container">
+    <h2 class="section-title">Produits Populaires</h2>
+
+    <div class="products-grid">
+
+      <div class="product-card">
+        <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae" alt="Médicaments">
+        <h3>Médicaments</h3>
+        <p class="product-price">À partir de 5,99€</p>
+        <a href="products.html" class="btn btn-primary">Voir détails</a>
+      </div>
+
+      <div class="product-card">
+        <img src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c" alt="Soins">
+        <h3>Soins de la Peau</h3>
+        <p class="product-price">À partir de 8,99€</p>
+        <a href="products.html" class="btn btn-primary">Voir détails</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p>&copy; 2024 Diagnos Pharmacy</p>
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script src="script.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+  AOS.init({
+    duration: 900,
+    once: true
+  });
+</script>
+
+</body>
+</html>

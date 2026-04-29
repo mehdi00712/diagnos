@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Diagnos Pharmacy</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="container header-container">
+    <a href="index.html" class="logo">Diagnos<span>Pharmacy</span></a>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<main class="auth-page">
+  <div class="auth-box">
+
+    <h1>Admin Login</h1>
+    <p>Accès réservé à l’administrateur</p>
+
+    <form id="admin-login-form">
+
+      <div class="form-group">
+        <label for="admin-email">Email</label>
+        <input type="email" id="admin-email" placeholder="admin@diagnos.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="admin-password">Mot de passe</label>
+        <input type="password" id="admin-password" placeholder="Mot de passe" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        Se connecter
+      </button>
+
+    </form>
+
+    <p class="auth-link">
+      <a href="index.html">← Retour au site</a>
+    </p>
+
+  </div>
+</main>
+
+<!-- SCRIPT -->
+<script>
+  document.getElementById("admin-login-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById("admin-email").value.trim().toLowerCase();
+    const password = document.getElementById("admin-password").value;
+
+    if (email === "admin@diagnos.com" && password === "admin123") {
+      sessionStorage.setItem("adminLoggedIn", "true");
+      window.location.replace("admin.html");
+    } else {
+      alert("Identifiants admin incorrects.");
+    }
+  });
+</script>
+
+</body>
+</html>

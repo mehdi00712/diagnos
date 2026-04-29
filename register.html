@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Créer un compte - Diagnos Pharmacy</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<main class="auth-page">
+  <div class="auth-box">
+    <a href="index.html" class="logo">Diagnos<span>Pharmacy</span></a>
+
+    <h1>Créer un compte</h1>
+    <p>Créez votre compte pour passer une commande.</p>
+
+    <form id="register-form">
+      <div class="form-group">
+        <label>Nom complet</label>
+        <input type="text" id="register-name" required>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="register-email" required>
+      </div>
+
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="register-password" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Créer mon compte</button>
+    </form>
+
+    <p class="auth-link">
+      Déjà un compte ? <a href="login.html">Se connecter</a>
+    </p>
+  </div>
+</main>
+
+<script src="auth.js"></script>
+
+</body>
+</html>

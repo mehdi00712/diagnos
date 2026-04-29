@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnos Pharmacy - Blog</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+
+<body>
+
+<header>
+  <div class="container header-container">
+    <a href="index.html" class="logo">Diagnos<span>Pharmacy</span></a>
+
+    <nav>
+      <ul>
+        <li><a href="index.html">Accueil</a></li>
+        <li><a href="products.html">Produits</a></li>
+        <li><a href="blog.html" class="active">Blog</a></li>
+        <li><a href="locations.html">Nos Agences</a></li>
+        <li><a href="cart.html"><i class="fas fa-shopping-cart"></i> Panier <span class="cart-count">0</span></a></li>
+        <li><a href="contact.html">Contact</a></li>
+
+        <li class="user-menu" id="user-menu">
+          <a href="login.html" id="user-link">Connexion</a>
+
+          <div class="user-dropdown" id="user-dropdown">
+            <a href="my-orders.html">Mes commandes</a>
+            <button type="button" onclick="logoutUser()">Déconnexion</button>
+          </div>
+        </li>
+      </ul>
+    </nav>
+
+    <button class="mobile-menu-btn" aria-label="Menu mobile">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+</header>
+
+<div class="mobile-nav">
+  <ul>
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="products.html">Produits</a></li>
+    <li><a href="blog.html" class="active">Blog</a></li>
+    <li><a href="locations.html">Nos Agences</a></li>
+    <li><a href="cart.html">Panier <span class="cart-count">0</span></a></li>
+    <li><a href="contact.html">Contact</a></li>
+
+    <li><a href="login.html" id="mobile-user-link">Connexion</a></li>
+    <li><a href="my-orders.html" id="mobile-orders-link" style="display:none;">Mes commandes</a></li>
+    <li>
+      <button type="button" class="mobile-logout-btn" onclick="logoutUser()" style="display:none;">
+        Déconnexion
+      </button>
+    </li>
+  </ul>
+</div>
+
+<main class="blog-page">
+  <div class="container">
+    <h1 class="page-title" data-aos="fade-up">Conseils de Santé</h1>
+
+    <div class="blog-grid">
+
+      <article class="blog-post" data-aos="fade-up">
+        <img src="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=1200&q=80" alt="Grippe">
+        <div class="post-content">
+          <p class="post-meta"><i class="far fa-calendar-alt"></i> 15 juin 2024 | Dr. Jean Dupont</p>
+          <h2>Comment prévenir la grippe saisonnière</h2>
+          <p class="excerpt">Découvrez les gestes simples pour protéger votre santé.</p>
+          <a href="#" class="read-more">Lire la suite →</a>
+        </div>
+      </article>
+
+      <article class="blog-post" data-aos="fade-up">
+        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1200&q=80" alt="Vitamine D">
+        <div class="post-content">
+          <p class="post-meta"><i class="far fa-calendar-alt"></i> 28 juin 2024 | Dr. Marie Laurent</p>
+          <h2>L'importance de la vitamine D</h2>
+          <p class="excerpt">La vitamine D aide l’immunité et le bien-être général.</p>
+          <a href="#" class="read-more">Lire la suite →</a>
+        </div>
+      </article>
+
+      <article class="blog-post" data-aos="fade-up">
+        <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1200&q=80" alt="Sommeil">
+        <div class="post-content">
+          <p class="post-meta"><i class="far fa-calendar-alt"></i> 10 juillet 2024 | Pharmacien Expert</p>
+          <h2>Améliorer la qualité du sommeil</h2>
+          <p class="excerpt">Quelques habitudes simples peuvent vous aider à mieux dormir.</p>
+          <a href="#" class="read-more">Lire la suite →</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom">
+      <p>&copy; 2024 Diagnos Pharmacy</p>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 900,
+    once: true,
+    offset: 120
+  });
+</script>
+
+</body>
+</html>

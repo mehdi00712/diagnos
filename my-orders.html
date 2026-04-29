@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes Commandes - Diagnos Pharmacy</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+<header>
+  <div class="container header-container">
+    <a href="index.html" class="logo">Diagnos<span>Pharmacy</span></a>
+
+    <nav>
+      <ul>
+        <li><a href="index.html">Accueil</a></li>
+        <li><a href="products.html">Produits</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="locations.html">Nos Agences</a></li>
+        <li><a href="cart.html"><i class="fas fa-shopping-cart"></i> Panier <span class="cart-count">0</span></a></li>
+        <li><a href="contact.html">Contact</a></li>
+
+        <li class="user-menu" id="user-menu">
+          <a href="login.html" id="user-link">Connexion</a>
+          <div class="user-dropdown" id="user-dropdown">
+            <a href="my-orders.html">Mes commandes</a>
+            <button type="button" onclick="logoutUser()">Déconnexion</button>
+          </div>
+        </li>
+      </ul>
+    </nav>
+
+    <button class="mobile-menu-btn">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+</header>
+
+<div class="mobile-nav">
+  <ul>
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="products.html">Produits</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="locations.html">Nos Agences</a></li>
+    <li><a href="cart.html">Panier <span class="cart-count">0</span></a></li>
+    <li><a href="contact.html">Contact</a></li>
+
+    <li><a href="login.html" id="mobile-user-link">Connexion</a></li>
+    <li><a href="my-orders.html" id="mobile-orders-link" style="display:none;">Mes commandes</a></li>
+    <li>
+      <button type="button" class="mobile-logout-btn" onclick="logoutUser()" style="display:none;">
+        Déconnexion
+      </button>
+    </li>
+  </ul>
+</div>
+
+<main class="orders-page">
+  <div class="container">
+    <h1 class="page-title">Mes Commandes</h1>
+
+    <div id="user-orders"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom">
+      <p>&copy; 2024 Diagnos Pharmacy</p>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script src="my-orders.js"></script>
+
+</body>
+</html>
