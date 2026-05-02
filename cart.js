@@ -30,11 +30,18 @@ function showToast(message, type = "success") {
 }
 
 function getCart() {
-  return JSON.parse(localStorage.getItem("cart")) || [];
+  const user = JSON.parse(localStorage.getItem("currentUser"));
+  if (!user) return [];
+
+  return JSON.parse(localStorage.getItem(`cart_${user.email}`)) || [];
 }
 
 function saveCart(cart) {
-  localStorage.setItem("cart", JSON.stringify(cart));
+  const user = JSON.parse(localStorage.getItem("currentUser"));
+  if (!user) return;
+
+  localStorage.setItem(`cart_${user.email}`, JSON.stringify(cart));
+
   displayCart();
   updateCartCounter();
 }
