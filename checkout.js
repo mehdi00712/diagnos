@@ -13,13 +13,37 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
+/* ============================= */
+/* 🔐 USER & CART KEY */
+/* ============================= */
+
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem("currentUser"));
+}
+
+function getCartKey() {
+  const user = getCurrentUser();
+  return user ? `cart_${user.id}` : null;
+}
+
+function getCart() {
+  const key = getCartKey();
+  return key ? JSON.parse(localStorage.getItem(key)) || [] : [];
+}
+
+/* ============================= */
+/* 🚀 INIT */
+/* ============================= */
+
 document.addEventListener("DOMContentLoaded", () => {
-  const user = JSON.parse(localStorage.getItem("currentUser"));
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const user = getCurrentUser();
+  const cart = getCart();
 
   const itemsContainer = document.getElementById("checkout-items");
   const totalEl = document.getElementById("checkout-total");
   const checkoutForm = document.getElementById("checkout-form");
+
+  const SHIPPING = 5;
 
   if (!user) {
     showToast("Veuillez vous connecter d'abord.", "error");
@@ -31,10 +55,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  // remplir les infos user
   document.getElementById("name").value = user.name;
   document.getElementById("email").value = user.email;
 
-  let total = 0;
+  let subtotal = 0;
 
   itemsContainer.innerHTML = "";
 
@@ -48,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const price = Number(item.price) || 0;
     const quantity = Number(item.quantity) || 1;
 
-    total += price * quantity;
+    subtotal += price * quantity;
 
     const div = document.createElement("div");
     div.className = "checkout-item";
@@ -60,7 +85,20 @@ document.addEventListener("DOMContentLoaded", () => {
     itemsContainer.appendChild(div);
   });
 
+  const total = subtotal + SHIPPING;
+
+  // afficher total + livraison
+  itemsContainer.innerHTML += `
+    <hr>
+    <p>Sous-total: €${subtotal.toFixed(2)}</p>
+    <p>Livraison: €${SHIPPING.toFixed(2)}</p>
+  `;
+
   totalEl.textContent = `€${total.toFixed(2)}`;
+
+  /* ============================= */
+  /* 🧾 SUBMIT ORDER */
+  /* ============================= */
 
   checkoutForm.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -70,24 +108,49 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
+
+    if (!phone || phone.length < 8) {
+      showToast("Numéro de téléphone invalide", "error");
+      return;
+    }
+
+    if (!address) {
+      showToast("Adresse requise", "error");
+      return;
+    }
+
     const order = {
       id: Date.now(),
-      user: user,
-      phone: document.getElementById("phone").value.trim(),
-      address: document.getElementById("address").value.trim(),
+      userId: user.id,
+      userName: user.name,
+      email: user.email,
+      phone: phone,
+      address: address,
       items: cart,
+      subtotal: subtotal,
+      shipping: SHIPPING,
       total: total,
       status: "Pending",
       date: new Date().toLocaleString()
     };
 
-    const orders = JSON.parse(localStorage.getItem("orders")) || [];
+    // stocker commandes par utilisateur (propre)
+    const ordersKey = `orders_${user.id}`;
+    const orders = JSON.parse(localStorage.getItem(ordersKey)) || [];
+
     orders.push(order);
 
-    localStorage.setItem("orders", JSON.stringify(orders));
-    localStorage.removeItem("cart");
+    localStorage.setItem(ordersKey, JSON.stringify(orders));
 
-    showToast("Commande passée avec succès !", "success");
+    // vider panier utilisateur
+    const cartKey = getCartKey();
+    if (cartKey) {
+      localStorage.removeItem(cartKey);
+    }
+
+    showToast("Commande confirmée 🎉", "success");
 
     setTimeout(() => {
       window.location.href = "index.html";
