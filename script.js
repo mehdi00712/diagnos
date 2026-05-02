@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCartSystem();
 });
 
-/* ================= MOBILE MENU ================= */
+// ================= MOBILE MENU =================
 function setupMobileMenu() {
   const btn = document.querySelector(".mobile-menu-btn");
   const nav = document.querySelector(".mobile-nav");
@@ -39,9 +39,9 @@ function setupMobileMenu() {
   });
 }
 
-/* ================= USER SYSTEM ================= */
+// ================= USER SYSTEM =================
 function setupUserSystem() {
-  const user = getCurrentUser();
+  const user = JSON.parse(localStorage.getItem("currentUser"));
 
   const userLink = document.getElementById("user-link");
   const userMenu = document.getElementById("user-menu");
@@ -52,6 +52,7 @@ function setupUserSystem() {
   const mobileLogout = document.querySelector(".mobile-logout-btn");
 
   if (user) {
+    // DESKTOP
     if (userLink) {
       userLink.textContent = user.name;
       userLink.href = "#";
@@ -70,6 +71,7 @@ function setupUserSystem() {
       });
     }
 
+    // MOBILE
     if (mobileUser) {
       mobileUser.textContent = user.name;
       mobileUser.href = "#";
@@ -79,6 +81,7 @@ function setupUserSystem() {
     if (mobileLogout) mobileLogout.style.display = "block";
 
   } else {
+    // NOT LOGGED
     if (userLink) {
       userLink.textContent = "Connexion";
       userLink.href = "login.html";
@@ -94,36 +97,21 @@ function setupUserSystem() {
   }
 }
 
-/* ================= LOGOUT ================= */
+// ================= LOGOUT =================
 function logoutUser() {
   localStorage.removeItem("currentUser");
   location.reload();
 }
 
-/* ================= USER HELPERS ================= */
-function getCurrentUser() {
-  return JSON.parse(localStorage.getItem("currentUser"));
-}
-
-function getCartKey() {
-  const user = getCurrentUser();
-  return user ? `cart_${user.id}` : null;
-}
-
-/* ================= CART ================= */
+// ================= CART =================
 function getCart() {
-  const key = getCartKey();
-  return key ? JSON.parse(localStorage.getItem(key)) || [] : [];
+  try {
+    return JSON.parse(localStorage.getItem("cart")) || [];
+  } catch {
+    return [];
+  }
 }
 
-function saveCart(cart) {
-  const key = getCartKey();
-  if (!key) return;
-
-  localStorage.setItem(key, JSON.stringify(cart));
-}
-
-/* ================= TOAST ================= */
 function showToast(message, type = "success") {
   const oldToast = document.querySelector(".toast-message");
   if (oldToast) oldToast.remove();
@@ -139,7 +127,6 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
-/* ================= CART SYSTEM ================= */
 function setupCartSystem() {
   updateCartCounter();
   setupAddToCart();
@@ -157,21 +144,14 @@ function updateCartCounter() {
   });
 }
 
-/* ================= ADD TO CART ================= */
+// ================= ADD TO CART =================
 function setupAddToCart() {
   const buttons = document.querySelectorAll(".add-to-cart");
 
   buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
-
-      const user = getCurrentUser();
-
-      if (!user) {
-        showToast("Veuillez vous connecter", "error");
-        return;
-      }
-
       const card = btn.closest(".product-card");
+
       if (!card) return;
 
       const name = card.querySelector("h3").textContent.trim();
@@ -197,8 +177,7 @@ function setupAddToCart() {
         });
       }
 
-      saveCart(cart); // ✅ CORRECT
-
+      localStorage.setItem("cart", JSON.stringify(cart));
       updateCartCounter();
 
       btn.textContent = "Ajouté ✓";
