@@ -1,3 +1,11 @@
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
 const cartContainer = document.getElementById("cart-items");
 const subtotalEl = document.getElementById("subtotal");
 const totalEl = document.getElementById("total");
@@ -5,14 +13,8 @@ const shippingEl = document.getElementById("shipping");
 const checkoutBtn = document.getElementById("checkout-btn");
 
 const SHIPPING = 5;
-
-document.addEventListener("DOMContentLoaded", () => {
-  displayCart();
-
-  if (checkoutBtn) {
-    checkoutBtn.addEventListener("click", checkout);
-  }
-});
+let currentUser = null;
+let cartItems = [];
 
 function showToast(message, type = "success") {
   const oldToast = document.querySelector(".toast-message");
@@ -21,58 +23,47 @@ function showToast(message, type = "success") {
   const toast = document.createElement("div");
   toast.className = `toast-message ${type}`;
   toast.textContent = message;
-
   document.body.appendChild(toast);
 
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
+  setTimeout(() => toast.remove(), 3000);
 }
 
-/* ============================= */
-/* 🔐 USER & CART KEY MANAGEMENT */
-/* ============================= */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    showToast("Veuillez vous connecter d'abord.", "error");
 
-function getCurrentUser() {
-  return JSON.parse(localStorage.getItem("currentUser"));
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 1000);
+
+    return;
+  }
+
+  currentUser = user;
+  await loadCart();
+});
+
+async function loadCart() {
+  const cartRef = doc(db, "carts", currentUser.uid);
+  const cartSnap = await getDoc(cartRef);
+
+  cartItems = cartSnap.exists() ? cartSnap.data().items || [] : [];
+  displayCart();
 }
 
-function getCartKey() {
-  const user = getCurrentUser();
-  return user ? `cart_${user.id}` : null;
-}
-
-/* ============================= */
-/* 🛒 CART STORAGE */
-/* ============================= */
-
-function getCart() {
-  const key = getCartKey();
-  return key ? JSON.parse(localStorage.getItem(key)) || [] : [];
-}
-
-function saveCart(cart) {
-  const key = getCartKey();
-  if (!key) return;
-
-  localStorage.setItem(key, JSON.stringify(cart));
+async function saveCart() {
+  await setDoc(doc(db, "carts", currentUser.uid), {
+    userId: currentUser.uid,
+    items: cartItems
+  });
 
   displayCart();
-  updateCartCounter();
 }
 
-/* ============================= */
-/* 🖥️ DISPLAY CART */
-/* ============================= */
-
 function displayCart() {
-  const cart = getCart();
-
-  if (!cartContainer) return;
-
   cartContainer.innerHTML = "";
 
-  if (cart.length === 0) {
+  if (cartItems.length === 0) {
     cartContainer.innerHTML = `
       <div class="empty">
         <p>Votre panier est vide</p>
@@ -81,14 +72,12 @@ function displayCart() {
     `;
 
     updateTotals(0, false);
-    toggleCheckout(false);
-    updateCartCounter();
     return;
   }
 
   let subtotal = 0;
 
-  cart.forEach((item, index) => {
+  cartItems.forEach((item, index) => {
     const price = Number(item.price) || 0;
     const quantity = Number(item.quantity) || 1;
 
@@ -99,19 +88,18 @@ function displayCart() {
 
     div.innerHTML = `
       <img src="${item.image}" alt="${item.name}">
-
       <div class="item-details">
         <h3>${item.name}</h3>
         <p class="price">€${price.toFixed(2)}</p>
 
         <div class="quantity-selector">
-          <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
+          <button class="qty-btn" data-index="${index}" data-action="minus">-</button>
           <input type="number" value="${quantity}" readonly>
-          <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+          <button class="qty-btn" data-index="${index}" data-action="plus">+</button>
         </div>
       </div>
 
-      <button class="remove-item" onclick="removeItem(${index})">
+      <button class="remove-item" data-index="${index}" data-action="remove">
         <i class="fas fa-trash"></i>
       </button>
     `;
@@ -120,105 +108,48 @@ function displayCart() {
   });
 
   updateTotals(subtotal, true);
-  toggleCheckout(true);
-  updateCartCounter();
 }
-
-/* ============================= */
-/* 💰 TOTALS */
-/* ============================= */
 
 function updateTotals(subtotal, hasItems) {
   const shipping = hasItems ? SHIPPING : 0;
   const total = subtotal + shipping;
 
-  if (subtotalEl) subtotalEl.textContent = `€${subtotal.toFixed(2)}`;
-  if (shippingEl) shippingEl.textContent = `€${shipping.toFixed(2)}`;
-  if (totalEl) totalEl.textContent = `€${total.toFixed(2)}`;
+  subtotalEl.textContent = `€${subtotal.toFixed(2)}`;
+  shippingEl.textContent = `€${shipping.toFixed(2)}`;
+  totalEl.textContent = `€${total.toFixed(2)}`;
 }
 
-/* ============================= */
-/* 🧠 UI CONTROL */
-/* ============================= */
+cartContainer.addEventListener("click", async (e) => {
+  const button = e.target.closest("button");
+  if (!button) return;
 
-function toggleCheckout(enabled) {
-  if (!checkoutBtn) return;
+  const index = Number(button.dataset.index);
+  const action = button.dataset.action;
 
-  checkoutBtn.disabled = !enabled;
-  checkoutBtn.style.opacity = enabled ? "1" : "0.5";
-  checkoutBtn.style.cursor = enabled ? "pointer" : "not-allowed";
-}
-
-/* ============================= */
-/* 🔄 CART ACTIONS */
-/* ============================= */
-
-function changeQty(index, amount) {
-  const cart = getCart();
-
-  if (!cart[index]) return;
-
-  cart[index].quantity = Number(cart[index].quantity) + amount;
-
-  if (cart[index].quantity <= 0) {
-    cart.splice(index, 1);
+  if (action === "plus") {
+    cartItems[index].quantity += 1;
   }
 
-  saveCart(cart);
-}
+  if (action === "minus") {
+    cartItems[index].quantity -= 1;
 
-function removeItem(index) {
-  const cart = getCart();
+    if (cartItems[index].quantity <= 0) {
+      cartItems.splice(index, 1);
+    }
+  }
 
-  if (!cart[index]) return;
+  if (action === "remove") {
+    cartItems.splice(index, 1);
+  }
 
-  cart.splice(index, 1);
-  saveCart(cart);
+  await saveCart();
+});
 
-  showToast("Produit supprimé du panier.", "success");
-}
-
-/* ============================= */
-/* 🚀 CHECKOUT */
-/* ============================= */
-
-function checkout() {
-  const cart = getCart();
-
-  if (cart.length === 0) {
+checkoutBtn.addEventListener("click", () => {
+  if (cartItems.length === 0) {
     showToast("Votre panier est vide !", "error");
     return;
   }
 
-  const user = getCurrentUser();
-
-  if (!user) {
-    showToast("Veuillez vous connecter d'abord.", "error");
-
-    localStorage.setItem("redirectAfterLogin", "checkout.html");
-
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 1200);
-
-    return;
-  }
-
   window.location.href = "checkout.html";
-}
-
-/* ============================= */
-/* 🔢 CART COUNTER */
-/* ============================= */
-
-function updateCartCounter() {
-  const cart = getCart();
-
-  const count = cart.reduce((total, item) => {
-    return total + Number(item.quantity || 0);
-  }, 0);
-
-  document.querySelectorAll(".cart-count").forEach(counter => {
-    counter.textContent = count;
-  });
-}
+});
