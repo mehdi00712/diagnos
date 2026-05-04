@@ -18,9 +18,12 @@ function showToast(message, type = "success") {
   const toast = document.createElement("div");
   toast.className = `toast-message ${type}`;
   toast.textContent = message;
+
   document.body.appendChild(toast);
 
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 }
 
 function redirectUser() {
@@ -44,6 +47,11 @@ if (registerForm) {
     const email = document.getElementById("register-email").value.trim().toLowerCase();
     const password = document.getElementById("register-password").value;
 
+    if (password.length < 6) {
+      showToast("Le mot de passe doit contenir au moins 6 caractères.", "error");
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
@@ -52,6 +60,7 @@ if (registerForm) {
       });
 
       await setDoc(doc(db, "users", userCredential.user.uid), {
+        uid: userCredential.user.uid,
         name,
         email,
         role: "customer",
@@ -65,7 +74,7 @@ if (registerForm) {
       }, 1000);
 
     } catch (error) {
-      showToast("Erreur: " + error.message, "error");
+      showToast("Erreur lors de la création du compte.", "error");
     }
   });
 }
