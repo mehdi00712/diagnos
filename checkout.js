@@ -1,3 +1,16 @@
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  collection,
+  deleteDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// ================= TOAST =================
 function showToast(message, type = "success") {
   const oldToast = document.querySelector(".toast-message");
   if (oldToast) oldToast.remove();
@@ -13,16 +26,25 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const user = JSON.parse(localStorage.getItem("currentUser"));
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+const itemsContainer = document.getElementById("checkout-items");
+const totalEl = document.getElementById("checkout-total");
+const checkoutForm = document.getElementById("checkout-form");
 
-  const itemsContainer = document.getElementById("checkout-items");
-  const totalEl = document.getElementById("checkout-total");
-  const checkoutForm = document.getElementById("checkout-form");
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const phoneInput = document.getElementById("phone");
+const addressInput = document.getElementById("address");
 
+let currentUser = null;
+let cartItems = [];
+let total = 0;
+
+// ================= AUTH CHECK =================
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     showToast("Veuillez vous connecter d'abord.", "error");
+
+    localStorage.setItem("redirectAfterLogin", "checkout.html");
 
     setTimeout(() => {
       window.location.href = "login.html";
@@ -31,20 +53,39 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  document.getElementById("name").value = user.name;
-  document.getElementById("email").value = user.email;
+  currentUser = user;
 
-  let total = 0;
+  nameInput.value = user.displayName || "";
+  emailInput.value = user.email || "";
 
+  await loadCart();
+});
+
+// ================= LOAD FIREBASE CART =================
+async function loadCart() {
+  const cartRef = doc(db, "carts", currentUser.uid);
+  const cartSnap = await getDoc(cartRef);
+
+  cartItems = cartSnap.exists() ? cartSnap.data().items || [] : [];
+
+  displayCheckoutItems();
+}
+
+// ================= DISPLAY CHECKOUT =================
+function displayCheckoutItems() {
   itemsContainer.innerHTML = "";
+  total = 0;
 
-  if (cart.length === 0) {
+  if (cartItems.length === 0) {
     itemsContainer.innerHTML = `
       <div class="empty">Votre panier est vide.</div>
     `;
+
+    totalEl.textContent = "€0.00";
+    return;
   }
 
-  cart.forEach(item => {
+  cartItems.forEach(item => {
     const price = Number(item.price) || 0;
     const quantity = Number(item.quantity) || 1;
 
@@ -61,36 +102,58 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   totalEl.textContent = `€${total.toFixed(2)}`;
+}
 
-  checkoutForm.addEventListener("submit", function (e) {
-    e.preventDefault();
+// ================= PLACE ORDER =================
+checkoutForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-    if (cart.length === 0) {
-      showToast("Votre panier est vide !", "error");
-      return;
-    }
+  if (!currentUser) {
+    showToast("Veuillez vous connecter d'abord.", "error");
+    return;
+  }
 
+  if (cartItems.length === 0) {
+    showToast("Votre panier est vide !", "error");
+    return;
+  }
+
+  const phone = phoneInput.value.trim();
+  const address = addressInput.value.trim();
+
+  if (!phone || !address) {
+    showToast("Veuillez remplir le téléphone et l'adresse.", "error");
+    return;
+  }
+
+  try {
     const order = {
-      id: Date.now(),
-      user: user,
-      phone: document.getElementById("phone").value.trim(),
-      address: document.getElementById("address").value.trim(),
-      items: cart,
-      total: total,
+      userId: currentUser.uid,
+      user: {
+        name: currentUser.displayName || nameInput.value.trim(),
+        email: currentUser.email
+      },
+      phone,
+      address,
+      items: cartItems,
+      total,
       status: "Pending",
-      date: new Date().toLocaleString()
+      date: new Date().toLocaleString(),
+      createdAt: serverTimestamp()
     };
 
-    const orders = JSON.parse(localStorage.getItem("orders")) || [];
-    orders.push(order);
+    await addDoc(collection(db, "orders"), order);
 
-    localStorage.setItem("orders", JSON.stringify(orders));
-    localStorage.removeItem("cart");
+    await deleteDoc(doc(db, "carts", currentUser.uid));
 
     showToast("Commande passée avec succès !", "success");
 
     setTimeout(() => {
       window.location.href = "index.html";
     }, 1200);
-  });
+
+  } catch (error) {
+    console.error("Order error:", error);
+    showToast("Erreur lors de la commande.", "error");
+  }
 });
