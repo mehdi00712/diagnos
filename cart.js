@@ -16,7 +16,9 @@ const SHIPPING = 5;
 
 let currentUser = null;
 let cartItems = [];
+let authReady = false;
 
+// ================= TOAST =================
 function showToast(message, type = "success") {
   const oldToast = document.querySelector(".toast-message");
   if (oldToast) oldToast.remove();
@@ -32,8 +34,12 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
+// ================= AUTH STATE =================
 onAuthStateChanged(auth, async (user) => {
+  authReady = true;
   currentUser = user;
+
+  console.log("Cart Firebase user:", user ? user.email : null);
 
   if (!user) {
     cartItems = [];
@@ -54,23 +60,41 @@ onAuthStateChanged(auth, async (user) => {
   await loadCart();
 });
 
+// ================= LOAD CART =================
 async function loadCart() {
-  const cartRef = doc(db, "carts", currentUser.uid);
-  const cartSnap = await getDoc(cartRef);
+  if (!currentUser) return;
 
-  cartItems = cartSnap.exists() ? cartSnap.data().items || [] : [];
-  displayCart();
+  try {
+    const cartRef = doc(db, "carts", currentUser.uid);
+    const cartSnap = await getDoc(cartRef);
+
+    cartItems = cartSnap.exists() ? cartSnap.data().items || [] : [];
+
+    displayCart();
+  } catch (error) {
+    console.error("Load cart error:", error);
+    showToast("Erreur lors du chargement du panier.", "error");
+  }
 }
 
+// ================= SAVE CART =================
 async function saveCart() {
-  await setDoc(doc(db, "carts", currentUser.uid), {
-    userId: currentUser.uid,
-    items: cartItems
-  });
+  if (!currentUser) return;
 
-  displayCart();
+  try {
+    await setDoc(doc(db, "carts", currentUser.uid), {
+      userId: currentUser.uid,
+      items: cartItems
+    });
+
+    displayCart();
+  } catch (error) {
+    console.error("Save cart error:", error);
+    showToast("Erreur lors de la mise à jour du panier.", "error");
+  }
 }
 
+// ================= DISPLAY CART =================
 function displayCart() {
   if (!cartContainer) return;
 
@@ -124,6 +148,7 @@ function displayCart() {
   updateTotals(subtotal, true);
 }
 
+// ================= TOTALS =================
 function updateTotals(subtotal, hasItems) {
   const shipping = hasItems ? SHIPPING : 0;
   const total = subtotal + shipping;
@@ -133,6 +158,7 @@ function updateTotals(subtotal, hasItems) {
   if (totalEl) totalEl.textContent = `€${total.toFixed(2)}`;
 }
 
+// ================= CART BUTTONS =================
 if (cartContainer) {
   cartContainer.addEventListener("click", async (e) => {
     const button = e.target.closest("button");
@@ -164,8 +190,14 @@ if (cartContainer) {
   });
 }
 
+// ================= CHECKOUT =================
 if (checkoutBtn) {
   checkoutBtn.addEventListener("click", () => {
+    if (!authReady) {
+      showToast("Chargement du compte, réessayez.", "error");
+      return;
+    }
+
     if (!currentUser) {
       showToast("Veuillez vous connecter d'abord.", "error");
       localStorage.setItem("redirectAfterLogin", "cart.html");
