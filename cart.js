@@ -33,8 +33,9 @@ function showToast(message, type = "success") {
 }
 
 onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+
   if (!user) {
-    currentUser = null;
     cartItems = [];
 
     if (cartContainer) {
@@ -47,23 +48,13 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     updateTotals(0, false);
-
-    if (checkoutBtn) {
-      checkoutBtn.disabled = false;
-      checkoutBtn.style.opacity = "1";
-      checkoutBtn.style.cursor = "pointer";
-    }
-
     return;
   }
 
-  currentUser = user;
   await loadCart();
 });
 
 async function loadCart() {
-  if (!currentUser) return;
-
   const cartRef = doc(db, "carts", currentUser.uid);
   const cartSnap = await getDoc(cartRef);
 
@@ -72,8 +63,6 @@ async function loadCart() {
 }
 
 async function saveCart() {
-  if (!currentUser) return;
-
   await setDoc(doc(db, "carts", currentUser.uid), {
     userId: currentUser.uid,
     items: cartItems
@@ -179,7 +168,7 @@ if (checkoutBtn) {
   checkoutBtn.addEventListener("click", () => {
     if (!currentUser) {
       showToast("Veuillez vous connecter d'abord.", "error");
-      localStorage.setItem("redirectAfterLogin", "checkout.html");
+      localStorage.setItem("redirectAfterLogin", "cart.html");
 
       setTimeout(() => {
         window.location.href = "login.html";
