@@ -13,6 +13,7 @@ const shippingEl = document.getElementById("shipping");
 const checkoutBtn = document.getElementById("checkout-btn");
 
 const SHIPPING = 5;
+
 let currentUser = null;
 let cartItems = [];
 
@@ -23,18 +24,35 @@ function showToast(message, type = "success") {
   const toast = document.createElement("div");
   toast.className = `toast-message ${type}`;
   toast.textContent = message;
+
   document.body.appendChild(toast);
 
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 }
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    showToast("Veuillez vous connecter d'abord.", "error");
+    currentUser = null;
+    cartItems = [];
 
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 1000);
+    if (cartContainer) {
+      cartContainer.innerHTML = `
+        <div class="empty">
+          <p>Veuillez vous connecter pour voir votre panier.</p>
+          <a href="login.html" class="btn btn-primary">Se connecter</a>
+        </div>
+      `;
+    }
+
+    updateTotals(0, false);
+
+    if (checkoutBtn) {
+      checkoutBtn.disabled = false;
+      checkoutBtn.style.opacity = "1";
+      checkoutBtn.style.cursor = "pointer";
+    }
 
     return;
   }
@@ -44,6 +62,8 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function loadCart() {
+  if (!currentUser) return;
+
   const cartRef = doc(db, "carts", currentUser.uid);
   const cartSnap = await getDoc(cartRef);
 
@@ -52,6 +72,8 @@ async function loadCart() {
 }
 
 async function saveCart() {
+  if (!currentUser) return;
+
   await setDoc(doc(db, "carts", currentUser.uid), {
     userId: currentUser.uid,
     items: cartItems
@@ -61,6 +83,8 @@ async function saveCart() {
 }
 
 function displayCart() {
+  if (!cartContainer) return;
+
   cartContainer.innerHTML = "";
 
   if (cartItems.length === 0) {
@@ -88,6 +112,7 @@ function displayCart() {
 
     div.innerHTML = `
       <img src="${item.image}" alt="${item.name}">
+
       <div class="item-details">
         <h3>${item.name}</h3>
         <p class="price">€${price.toFixed(2)}</p>
@@ -114,42 +139,60 @@ function updateTotals(subtotal, hasItems) {
   const shipping = hasItems ? SHIPPING : 0;
   const total = subtotal + shipping;
 
-  subtotalEl.textContent = `€${subtotal.toFixed(2)}`;
-  shippingEl.textContent = `€${shipping.toFixed(2)}`;
-  totalEl.textContent = `€${total.toFixed(2)}`;
+  if (subtotalEl) subtotalEl.textContent = `€${subtotal.toFixed(2)}`;
+  if (shippingEl) shippingEl.textContent = `€${shipping.toFixed(2)}`;
+  if (totalEl) totalEl.textContent = `€${total.toFixed(2)}`;
 }
 
-cartContainer.addEventListener("click", async (e) => {
-  const button = e.target.closest("button");
-  if (!button) return;
+if (cartContainer) {
+  cartContainer.addEventListener("click", async (e) => {
+    const button = e.target.closest("button");
+    if (!button || !currentUser) return;
 
-  const index = Number(button.dataset.index);
-  const action = button.dataset.action;
+    const index = Number(button.dataset.index);
+    const action = button.dataset.action;
 
-  if (action === "plus") {
-    cartItems[index].quantity += 1;
-  }
+    if (!cartItems[index]) return;
 
-  if (action === "minus") {
-    cartItems[index].quantity -= 1;
-
-    if (cartItems[index].quantity <= 0) {
-      cartItems.splice(index, 1);
+    if (action === "plus") {
+      cartItems[index].quantity += 1;
     }
-  }
 
-  if (action === "remove") {
-    cartItems.splice(index, 1);
-  }
+    if (action === "minus") {
+      cartItems[index].quantity -= 1;
 
-  await saveCart();
-});
+      if (cartItems[index].quantity <= 0) {
+        cartItems.splice(index, 1);
+      }
+    }
 
-checkoutBtn.addEventListener("click", () => {
-  if (cartItems.length === 0) {
-    showToast("Votre panier est vide !", "error");
-    return;
-  }
+    if (action === "remove") {
+      cartItems.splice(index, 1);
+      showToast("Produit supprimé du panier.", "success");
+    }
 
-  window.location.href = "checkout.html";
-});
+    await saveCart();
+  });
+}
+
+if (checkoutBtn) {
+  checkoutBtn.addEventListener("click", () => {
+    if (!currentUser) {
+      showToast("Veuillez vous connecter d'abord.", "error");
+      localStorage.setItem("redirectAfterLogin", "checkout.html");
+
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 1200);
+
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      showToast("Votre panier est vide !", "error");
+      return;
+    }
+
+    window.location.href = "checkout.html";
+  });
+}
